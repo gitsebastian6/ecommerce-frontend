@@ -80,16 +80,51 @@ const Product = () => {
       console.log(productToSave)
       console.log(saveProduct, "savepr ")
       const response = await axiosPrivate.post(PRODUCT_URL, {...saveProduct, companyId: "363a7a35-7361-4511-bd5b-e740b0bc00f6"});
+      getProducts()
       console.log(response)
     } catch (err) {
       console.error(err);
     }
   }
+  const getProducts = async () => {
+    try {
+      const response = await axiosPrivate.get(PRODUCT_URL,
+        {
+            headers: { 
+              'Content-Type': 'application/json',}
+        });
+
+
+      console.log(response);
+      if (response.data.length > 0) {
+        const products = response.data.map((data => {
+          console.log(data)
+          return {
+            name: data.name,
+            price: data.prices.map((price) => `${price.value} ${price.currency.description}`).join(', '),
+            id: data.id,
+            code: data.code,
+            characteristics: data.characteristic,
+            categories: data.categories.map((category) => category.description).join(', ')
+          }
+        }))
+        console.log(products)
+        setProducts(products);
+
+      }
+     
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleDelete = async (id) => {
     console.log(id);
     if (id){
-      const response = axiosPrivate.delete(`${PRODUCT_URL}/${id}`)
+      const response = await axiosPrivate.delete(`${PRODUCT_URL}${id}`)
       console.log(response)
+      getProducts()
     }
   }
 
@@ -130,6 +165,7 @@ const Product = () => {
           const products = response.data.map((data => {
             console.log(data)
             return {
+              id: data.id,
               name: data.name,
               price: data.prices.map((price) => `${price.value} ${price.currency.description}`).join(', '),
               code: data.code,
@@ -183,7 +219,7 @@ const Product = () => {
                     <td>{product.characteristics}</td>
                     <td>{product.categories}</td>
                     <td>
-                      <button onClick={handleDelete(product.id)}>Delete</button>
+                    <button onClick={() => handleDelete(product.id)}>Delete</button>
                     </td>
                   </tr>
                 ))}
